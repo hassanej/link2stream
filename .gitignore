@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Cloudflare
+.wrangler/
+.dev.vars
+.dev.vars.*
+
+# Local databases
+*.sqlite
+*.sqlite3
+*.db
+
+# Logs
+*.log
+
+# macOS
+.DS_Store
+
+# Environment
+.env
+.env.*
+!.env.example
