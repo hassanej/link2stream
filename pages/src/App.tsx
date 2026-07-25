@@ -1,6 +1,12 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
 import './styles/app.css'
 
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL ??
+  (import.meta.env.DEV
+    ? ''
+    : 'https://link2stream-api.link2stream.workers.dev')
+
 type Role = 'admin' | 'family'
 
 type User = {
@@ -74,7 +80,7 @@ function App() {
 
     async function loadSession() {
       try {
-        const response = await fetch('/api/session', {
+        const response = await fetch(`${API_BASE}/api/session`, {
           credentials: 'include',
         })
 
@@ -117,7 +123,7 @@ function App() {
     setFilesError('')
 
     try {
-      const response = await fetch('/api/files', {
+      const response = await fetch(`${API_BASE}/api/files`, {
         credentials: 'include',
       })
       const data = await response.json() as FilesResponse
@@ -176,7 +182,7 @@ function App() {
     setLoginLoading(true)
 
     try {
-      const response = await fetch('/api/login', {
+      const response = await fetch(`${API_BASE}/api/login`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -216,7 +222,7 @@ function App() {
     setLogoutLoading(true)
 
     try {
-      await fetch('/api/logout', {
+      await fetch(`${API_BASE}/api/logout`, {
         method: 'POST',
         credentials: 'include',
       })
