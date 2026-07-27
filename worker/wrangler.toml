@@ -1,0 +1,12 @@
+name = "link2stream-api"
+main = "src/index.ts"
+compatibility_date = "2026-07-26"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "link2stream-db"
+database_id = "d3844557-c58e-41d7-90e3-e6c5a945f4ee"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "family-share"

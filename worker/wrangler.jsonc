@@ -14,7 +14,6 @@
 	"compatibility_flags": [
 		"nodejs_compat"
 	],
-
 	"r2_buckets": [
 		{
 			"binding": "BUCKET",
@@ -25,7 +24,7 @@
 		{
 			"binding": "DB",
 			"database_name": "link2stream-db",
-			"database_id": "9581a86e-2b80-4678-8408-51ccc7183a41"
+			"database_id": "d3844557-c58e-41d7-90e3-e6c5a945f4ee"
 		}
 	]
 	/**

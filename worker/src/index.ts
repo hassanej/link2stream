@@ -1,179 +1,258 @@
-export interface Env {
-  DB: D1Database;
-  BUCKET: R2Bucket;
+import type { Env } from "./types";
+
+import {
+  handleLogin,
+  handleLogout,
+  handleSession,
+} from "./auth";
+
+import {
+  createUser,
+  deleteUser,
+  listUsers,
+  resetPassword,
+  updateDisplayName,
+} from "./users";
+
+import {
+  buildFileLink,
+  deleteFile,
+  deleteFiles,
+  downloadFile,
+  listFiles,
+  streamFile,
+} from "./files";
+
+import { uploadFile } from "./uploads";
+import { downloadZip } from "./zip";
+import { error, json } from "./utils";
+
+function isAllowedOrigin(origin: string): boolean {
+  try {
+    const url = new URL(origin);
+
+    return (
+      url.hostname === "link2stream.pages.dev" ||
+      url.hostname.endsWith(".link2stream.pages.dev") ||
+      url.hostname === "localhost" ||
+      url.hostname === "127.0.0.1"
+    );
+  } catch {
+    return false;
+  }
 }
 
-const SESSION_COOKIE = "link2stream_session";
-const SESSION_SECONDS = 7 * 24 * 60 * 60;
+function corsHeaders(request: Request): Headers {
+  const headers = new Headers();
+  const origin = request.headers.get("origin");
 
-const ALLOWED_ORIGINS = new Set([
-  "http://localhost:5173",
-  "http://127.0.0.1:5173",
-  "https://link2stream.pages.dev",
-]);
-
-function corsHeaders(request: Request): Record<string, string> {
-  const origin = request.headers.get("Origin") ?? "";
-
-  if (!ALLOWED_ORIGINS.has(origin)) {
-    return {};
+  if (origin && isAllowedOrigin(origin)) {
+    headers.set("access-control-allow-origin", origin);
+    headers.set("access-control-allow-credentials", "true");
+    headers.set("vary", "Origin");
   }
 
-  return {
-    "Access-Control-Allow-Origin": origin,
-    "Access-Control-Allow-Credentials": "true",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    Vary: "Origin",
-  };
+  headers.set(
+    "access-control-allow-methods",
+    "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+  );
+
+  headers.set(
+    "access-control-allow-headers",
+    "Content-Type, X-File-Name"
+  );
+
+  headers.set("access-control-max-age", "86400");
+
+  return headers;
 }
 
-function json(
+function withCors(
   request: Request,
-  data: unknown,
-  status = 200,
-  extraHeaders: Record<string, string> = {},
+  response: Response
 ): Response {
-  return Response.json(data, {
-    status,
-    headers: {
-      ...corsHeaders(request),
-      ...extraHeaders,
-    },
+  const headers = new Headers(response.headers);
+
+  for (const [key, value] of corsHeaders(request)) {
+    headers.set(key, value);
+  }
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
   });
 }
 
-function getCookie(request: Request, name: string): string | null {
-  const cookieHeader = request.headers.get("Cookie");
+function decodeKey(
+  pathname: string,
+  prefix: string
+): string | null {
+  const encoded = pathname.slice(prefix.length);
 
-  if (!cookieHeader) {
+  if (!encoded) {
     return null;
   }
 
-  for (const cookie of cookieHeader.split(";")) {
-    const [key, ...valueParts] = cookie.trim().split("=");
-
-    if (key === name) {
-      return decodeURIComponent(valueParts.join("="));
-    }
+  try {
+    return encoded
+      .split("/")
+      .map(decodeURIComponent)
+      .join("/");
+  } catch {
+    return null;
   }
-
-  return null;
 }
 
-function sessionCookie(
+async function route(
   request: Request,
-  sessionId: string,
-  maxAge: number,
-): string {
-  const isHttps = new URL(request.url).protocol === "https:";
+  env: Env
+): Promise<Response> {
+  const url = new URL(request.url);
+  const path = url.pathname;
+  const method = request.method.toUpperCase();
 
-  return [
-    `${SESSION_COOKIE}=${encodeURIComponent(sessionId)}`,
-    "Path=/",
-    "HttpOnly",
-    `Max-Age=${maxAge}`,
-    isHttps ? "Secure" : "",
-    isHttps ? "SameSite=None" : "SameSite=Lax",
-  ]
-    .filter(Boolean)
-    .join("; ");
-}
-
-function bytesToHex(bytes: Uint8Array): string {
-  return Array.from(bytes)
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-function hexToBytes(hex: string): Uint8Array {
-  if (!/^[0-9a-f]+$/i.test(hex) || hex.length % 2 !== 0) {
-    throw new Error("Invalid hexadecimal value");
+  if (method === "GET" && path === "/") {
+    return json({
+      name: "Link2Stream API",
+      status: "ok",
+    });
   }
 
-  return new Uint8Array(
-    hex.match(/.{2}/g)?.map((value) => Number.parseInt(value, 16)) ?? [],
-  );
-}
-
-async function hashPassword(password: string, saltHex: string): Promise<string> {
-  const passwordKey = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(password),
-    "PBKDF2",
-    false,
-    ["deriveBits"],
-  );
-
-  const derivedBits = await crypto.subtle.deriveBits(
-    {
-      name: "PBKDF2",
-      hash: "SHA-256",
-      salt: hexToBytes(saltHex),
-      iterations: 100_000,
-    },
-    passwordKey,
-    256,
-  );
-
-  return bytesToHex(new Uint8Array(derivedBits));
-}
-
-function constantTimeEqual(left: string, right: string): boolean {
-  if (left.length !== right.length) {
-    return false;
+  if (method === "POST" && path === "/auth/login") {
+    return handleLogin(request, env);
   }
 
-  let difference = 0;
-
-  for (let index = 0; index < left.length; index += 1) {
-    difference |= left.charCodeAt(index) ^ right.charCodeAt(index);
+  if (method === "POST" && path === "/auth/logout") {
+    return handleLogout(request, env);
   }
 
-  return difference === 0;
-}
-
-function createSessionId(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(32));
-
-  return btoa(String.fromCharCode(...bytes))
-    .replaceAll("+", "-")
-    .replaceAll("/", "_")
-    .replaceAll("=", "");
-}
-
-async function getCurrentUser(request: Request, env: Env) {
-  const sessionId = getCookie(request, SESSION_COOKIE);
-
-  if (!sessionId) {
-    return null;
+  if (method === "GET" && path === "/auth/session") {
+    return handleSession(request, env);
   }
 
-  const now = Math.floor(Date.now() / 1000);
+  if (method === "GET" && path === "/users") {
+    return listUsers(request, env);
+  }
 
-  const user = await env.DB.prepare(
-    `
-      SELECT users.id, users.username, users.role
-      FROM sessions
-      INNER JOIN users ON users.id = sessions.user_id
-      WHERE sessions.id = ?
-        AND sessions.expires_at > ?
-    `,
-  )
-    .bind(sessionId, now)
-    .first<{
-      id: number;
-      username: string;
-      role: "admin" | "family";
-    }>();
+  if (method === "POST" && path === "/users") {
+    return createUser(request, env);
+  }
 
-  return user ?? null;
+  if (
+    method === "PATCH" &&
+    path === "/users/display-name"
+  ) {
+    return updateDisplayName(request, env);
+  }
+
+  if (
+    method === "PATCH" &&
+    path === "/users/password"
+  ) {
+    return resetPassword(request, env);
+  }
+
+
+  if (
+    method === "DELETE" &&
+    path === "/users"
+  ) {
+    return deleteUser(request, env);
+  }
+
+  if (method === "GET" && path === "/files") {
+    return listFiles(request, env);
+  }
+
+  if (method === "PUT" && path === "/uploads") {
+    return uploadFile(request, env);
+  }
+
+  if (method === "POST" && path === "/zip") {
+    return downloadZip(request, env);
+  }
+
+  if (
+    method === "GET" &&
+    path.startsWith("/files/") &&
+    path.endsWith("/link")
+  ) {
+    const keyPath = path.slice(
+      0,
+      path.length - "/link".length
+    );
+
+    const key = decodeKey(keyPath, "/files/");
+
+    if (!key) {
+      return error("Invalid file key");
+    }
+
+    return json({
+      link: buildFileLink(request, key),
+    });
+  }
+
+  if (
+    method === "GET" &&
+    path.startsWith("/files/")
+  ) {
+    const key = decodeKey(path, "/files/");
+
+    if (!key) {
+      return error("Invalid file key");
+    }
+
+    return downloadFile(request, env, key);
+  }
+
+  if (
+    method === "DELETE" &&
+    path === "/files"
+  ) {
+    return deleteFiles(request, env);
+  }
+
+
+  if (
+    method === "DELETE" &&
+    path.startsWith("/files/")
+  ) {
+    const key = decodeKey(path, "/files/");
+
+    if (!key) {
+      return error("Invalid file key");
+    }
+
+    return deleteFile(request, env, key);
+  }
+
+
+  if (
+    method === "GET" &&
+    path.startsWith("/public/files/")
+  ) {
+    const key = decodeKey(
+      path,
+      "/public/files/"
+    );
+
+    if (!key) {
+      return error("Invalid file key");
+    }
+
+    return streamFile(env, key);
+  }
+
+  return error("Not found", 404);
 }
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
-    const url = new URL(request.url);
-
+  async fetch(
+    request: Request,
+    env: Env
+  ): Promise<Response> {
     if (request.method === "OPTIONS") {
       return new Response(null, {
         status: 204,
@@ -181,194 +260,16 @@ export default {
       });
     }
 
-    if (request.method === "GET" && url.pathname === "/health") {
-      try {
-        await env.DB.prepare("SELECT 1 AS ok").first();
+    try {
+      const response = await route(request, env);
+      return withCors(request, response);
+    } catch (caught) {
+      console.error(caught);
 
-        return json(request, {
-          ok: true,
-          database: "connected",
-        });
-      } catch (error) {
-        return json(
-          request,
-          {
-            ok: false,
-            database: "error",
-            message:
-              error instanceof Error ? error.message : "Unknown database error",
-          },
-          500,
-        );
-      }
-    }
-
-    if (request.method === "GET" && url.pathname === "/api/files") {
-      const user = await getCurrentUser(request, env);
-
-      if (!user) {
-        return json(request, { error: "Unauthorized" }, 401);
-      }
-
-      try {
-        const files: Array<{
-          key: string;
-          name: string;
-          size: number;
-          uploaded: string;
-        }> = [];
-
-        let cursor: string | undefined;
-
-        do {
-          const result = await env.BUCKET.list({
-            cursor,
-            limit: 1000,
-          });
-
-          for (const object of result.objects) {
-            files.push({
-              key: object.key,
-              name: object.key.split("/").pop() ?? object.key,
-              size: object.size,
-              uploaded: object.uploaded.toISOString(),
-            });
-          }
-
-          cursor = result.truncated ? result.cursor : undefined;
-        } while (cursor);
-
-        files.sort(
-          (left, right) =>
-            new Date(right.uploaded).getTime() -
-            new Date(left.uploaded).getTime(),
-        );
-
-        const totalBytes = files.reduce(
-          (total, file) => total + file.size,
-          0,
-        );
-
-        return json(request, {
-          files,
-          totalBytes,
-          count: files.length,
-        });
-      } catch (error) {
-        return json(
-          request,
-          {
-            error: "Unable to list files",
-            message:
-              error instanceof Error ? error.message : "Unknown R2 error",
-          },
-          500,
-        );
-      }
-    }
-
-    if (request.method === "POST" && url.pathname === "/api/login") {
-      let body: { username?: string; password?: string };
-
-      try {
-        body = await request.json();
-      } catch {
-        return json(request, { error: "Invalid JSON body" }, 400);
-      }
-
-      const username = body.username?.trim().toLowerCase();
-      const password = body.password;
-
-      if (!username || !password) {
-        return json(request, { error: "Username and password are required" }, 400);
-      }
-
-      const user = await env.DB.prepare(
-        `
-          SELECT id, username, password_hash, password_salt, role
-          FROM users
-          WHERE username = ?
-        `,
-      )
-        .bind(username)
-        .first<{
-          id: number;
-          username: string;
-          password_hash: string;
-          password_salt: string;
-          role: "admin" | "family";
-        }>();
-
-      if (!user) {
-        return json(request, { error: "Invalid username or password" }, 401);
-      }
-
-      const suppliedHash = await hashPassword(password, user.password_salt);
-
-      if (!constantTimeEqual(suppliedHash, user.password_hash)) {
-        return json(request, { error: "Invalid username or password" }, 401);
-      }
-
-      const sessionId = createSessionId();
-      const expiresAt = Math.floor(Date.now() / 1000) + SESSION_SECONDS;
-
-      await env.DB.prepare(
-        `
-          INSERT INTO sessions (id, user_id, expires_at)
-          VALUES (?, ?, ?)
-        `,
-      )
-        .bind(sessionId, user.id, expiresAt)
-        .run();
-
-      return json(
+      return withCors(
         request,
-        {
-          user: {
-            id: user.id,
-            username: user.username,
-            role: user.role,
-          },
-        },
-        200,
-        {
-          "Set-Cookie": sessionCookie(request, sessionId, SESSION_SECONDS),
-        },
+        error("Internal server error", 500)
       );
     }
-
-    if (request.method === "GET" && url.pathname === "/api/session") {
-      const user = await getCurrentUser(request, env);
-
-      if (!user) {
-        return json(request, { authenticated: false }, 401);
-      }
-
-      return json(request, {
-        authenticated: true,
-        user,
-      });
-    }
-
-    if (request.method === "POST" && url.pathname === "/api/logout") {
-      const sessionId = getCookie(request, SESSION_COOKIE);
-
-      if (sessionId) {
-        await env.DB.prepare("DELETE FROM sessions WHERE id = ?")
-          .bind(sessionId)
-          .run();
-      }
-
-      return json(
-        request,
-        { ok: true },
-        200,
-        {
-          "Set-Cookie": sessionCookie(request, "", 0),
-        },
-      );
-    }
-
-    return json(request, { error: "Not found" }, 404);
   },
-} satisfies ExportedHandler<Env>;
+};
