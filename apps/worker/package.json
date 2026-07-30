@@ -1,5 +1,5 @@
 {
-  "name": "worker",
+  "name": "link2stream-worker",
   "version": "0.0.0",
   "private": true,
   "scripts": {
