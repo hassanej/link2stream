@@ -106,7 +106,9 @@ export async function handleLogin(
     return error("Invalid request body");
   }
 
-  const username = body.username?.trim();
+  const username = body.username
+  ?.trim()
+  .toLowerCase();
   const password = body.password ?? "";
 
   if (!username || !password) {

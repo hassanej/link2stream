@@ -1,4 +1,4 @@
-const API = "https://link2stream-api.link2stream.workers.dev";
+const API = "/api";
 
 async function request(path, options = {}) {
   const res = await fetch(API + path, {
@@ -22,7 +22,10 @@ async function request(path, options = {}) {
 export function login(username, password) {
   return request("/auth/login", {
     method: "POST",
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({
+      username: username.trim().toLowerCase(),
+      password,
+    }),
   });
 }
 

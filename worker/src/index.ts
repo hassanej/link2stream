@@ -242,7 +242,7 @@ async function route(
       return error("Invalid file key");
     }
 
-    return streamFile(env, key);
+    return streamFile(request, env, key);
   }
 
   return error("Not found", 404);

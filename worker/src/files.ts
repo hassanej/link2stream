@@ -91,10 +91,20 @@ export async function downloadFile(
 }
 
 export async function streamFile(
+  request: Request,
   env: Env,
   key: string
 ): Promise<Response> {
-  const object = await env.BUCKET.get(key);
+  const rangeHeader = request.headers.get("range");
+
+  const object = await env.BUCKET.get(
+    key,
+    rangeHeader
+      ? {
+          range: request.headers,
+        }
+      : undefined
+  );
 
   if (!object) {
     return error("File not found", 404);
@@ -104,6 +114,7 @@ export async function streamFile(
 
   object.writeHttpMetadata(headers);
   headers.set("etag", object.httpEtag);
+  headers.set("accept-ranges", "bytes");
   headers.set(
     "content-disposition",
     `inline; filename*=UTF-8''${encodeURIComponent(
@@ -111,7 +122,28 @@ export async function streamFile(
     )}`
   );
 
+  if (rangeHeader && object.range) {
+    const range = object.range;
+
+    if ("offset" in range) {
+      const start = range.offset;
+      const end =
+        start + range.length - 1;
+
+      headers.set(
+        "content-range",
+        `bytes ${start}-${end}/${object.size}`
+      );
+
+      headers.set(
+        "content-length",
+        String(range.length)
+      );
+    }
+  }
+
   return new Response(object.body, {
+    status: rangeHeader ? 206 : 200,
     headers,
   });
 }

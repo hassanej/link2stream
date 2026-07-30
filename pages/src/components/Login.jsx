@@ -100,13 +100,17 @@ export default function Login({ onLogin }) {
               onClick={() => setShowPassword(!showPassword)}
               style={{
                 position: "absolute",
-                right: 12,
+                right: 14,
                 top: "50%",
                 transform: "translateY(-50%)",
                 border: "none",
                 background: "transparent",
                 cursor: "pointer",
-                fontSize: 18,
+                fontSize: 13,
+                fontWeight: 600,
+                color: "#2563eb",
+                padding: 0,
+                lineHeight: 1,
               }}
             >
               {showPassword ? "Hide" : "Show"}

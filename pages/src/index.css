@@ -1,0 +1,71 @@
+
+/* ===== Mobile / Half-screen layout ===== */
+
+@media (max-width: 700px) {
+
+  table thead {
+    display: none;
+  }
+
+  table,
+  tbody,
+  tr,
+  td {
+    display: block;
+    width: 100%;
+  }
+
+  tbody tr {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 16px;
+    box-sizing: border-box;
+  }
+
+  td {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 0;
+    border: none !important;
+    text-align: right;
+  }
+
+  td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #6b7280;
+    text-align: left;
+    flex-shrink: 0;
+  }
+
+  .checkbox-column::before {
+    content: "";
+  }
+
+  .checkbox-column {
+    justify-content: flex-end;
+  }
+
+  .file-name {
+    width: 100%;
+    text-align: right;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .file-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .file-actions button {
+    min-height: 44px;
+  }
+}
+

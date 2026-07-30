@@ -192,7 +192,7 @@ export default function FileList({ user, onStorageChange }) {
       )}
 
       <div className="table-wrapper">
-        <table className="data-table">
+        <table className="data-table file-table">
 
           <thead>
             <tr>
@@ -236,7 +236,11 @@ export default function FileList({ user, onStorageChange }) {
                     checked ? "selected-row" : ""
                   }
                 >
-                  {user?.role === "admin" && <td className="checkbox-column">
+                  {user?.role === "admin" && (
+                    <td
+                      className="checkbox-column"
+                      data-label="Select"
+                    >
                     <input
                       type="checkbox"
                       checked={checked}
@@ -244,22 +248,27 @@ export default function FileList({ user, onStorageChange }) {
                         toggleFile(file.key)
                       }
                     />
-                  </td>}
+                    </td>
+                  )}
 
-                  <td>
-                    <div className="file-name"><span>{file.name}</span>
+                  <td data-label="Name">
+                    <div className="file-name">
+                      <span>{file.name}</span>
                     </div>
                   </td>
 
-                  <td>
+                  <td data-label="Size">
                     {formatBytes(file.size)}
                   </td>
 
-                  <td>
+                  <td data-label="Uploaded">
                     {formatDate(file.uploaded)}
                   </td>
 
-                  <td>
+                  <td
+                    className="file-actions"
+                    data-label="Actions"
+                  >
                     <button
                       className="text-button"
                       onClick={() => handleDownload(file)}
