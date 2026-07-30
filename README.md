@@ -4,16 +4,14 @@ Link2Stream is a modular media management platform.
 
 ## Repository Structure
 
-    apps/
-    ??? web/         Cloudflare Pages frontend
-    ??? worker/      Cloudflare Worker backend
-    ??? uploader/    VPS media processing pipeline (planned)
+apps/
+|-- web/         Cloudflare Pages frontend
+|-- worker/      Cloudflare Worker backend
+`-- uploader/    VPS media processing pipeline (planned)
 
-    packages/        Shared libraries (future)
-
-    docs/            Documentation
-
-    scripts/         Utility scripts
+packages/        Shared libraries (future)
+docs/            Documentation
+scripts/         Utility scripts
 
 ## Applications
 
