@@ -21,7 +21,16 @@ Workflow:
 
 ## Run
 
+**One click (macOS):** double-click `start.command` — it checks
+Node/ffmpeg, installs dependencies on first run, creates `.env`,
+starts the server, and opens http://127.0.0.1:3100 in your browser.
+(If macOS blocks it: right-click > Open, or run `bash start.command`.)
+
+**Terminal:**
+
     cd link2stream-local
+    bash start.sh        # same launcher
+    # or manually:
     cp .env.example .env   # set R2_* values
     npm install
     npm run dev            # http://127.0.0.1:3100
