@@ -1,6 +1,17 @@
 # Link2Stream
 
-Link2Stream is a modular media management platform.
+Link2Stream is a private family media platform.
+
+## Current architecture
+
+    manual media download (e.g. Real-Debrid)
+        -> link2stream-local (Mac): compress + upload
+        -> Cloudflare R2 bucket (family-share)
+        -> apps/worker API (auth, files, public streaming links)
+        -> apps/web (Cloudflare Pages): family watches/downloads
+
+The VPS pipeline (apps/uploader) has been removed; all processing
+happens locally on Apple Silicon via link2stream-local.
 
 ## Repository Structure
 
@@ -21,11 +32,12 @@ scripts/         Utility scripts
 Frontend for:
 
 - Login
-- User management
-- File browser
-- Upload
-- Download
-- Public links
+- User management (admin)
+- File browser (list, download, delete, copy public link)
+- Storage usage overview
+
+Note: uploads happen via link2stream-local or the worker API
+directly; the web UI has no upload form today.
 
 ### apps/worker
 

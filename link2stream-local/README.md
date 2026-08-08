@@ -45,10 +45,14 @@ where you can Open the result in your default player (e.g. IINA)
 and only then press Upload. Jobs can be retried or deleted at any
 time; running jobs cannot be deleted.
 
-## Download just this folder
+Job statuses: Queued, Encoding, Ready, Uploading, Complete, Failed.
 
-GitHub has no single-folder zip, but the whole repo is tiny
-(code only), so a regular clone is fine:
+## Download
+
+GitHub UI: Code -> Download ZIP (contains this folder along with
+the rest of the repo; everything is code only, no large files).
+
+CLI (whole repo is tiny):
 
     git clone --depth 1 https://github.com/hassanej/link2stream.git
     cd link2stream/link2stream-local
