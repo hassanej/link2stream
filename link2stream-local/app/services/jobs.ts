@@ -20,6 +20,7 @@ import type { ProfileId } from "./profiles.js";
 export type JobStatus =
     | "Queued"
     | "Encoding"
+    | "Ready"
     | "Uploading"
     | "Complete"
     | "Failed";
@@ -163,7 +164,12 @@ class JobManager {
         return job;
     }
 
-    public retry(id: string): Job {
+    /**
+     * Retry a failed job. If a completed encode exists, the job
+     * returns to the review gate (Ready) awaiting upload; otherwise
+     * it is re-queued for encoding.
+     */
+    public async retry(id: string): Promise<Job> {
         const job = this.get(id);
 
         if (job.status !== "Failed") {
@@ -176,12 +182,22 @@ class JobManager {
             );
         }
 
-        job.status = "Queued";
         job.error = null;
-        job.encodeProgress = job.encodeComplete ? 100 : 0;
         job.uploadProgress = 0;
+
+        if (job.encodeComplete && (await this.outputExists(job))) {
+            job.status = "Ready";
+            job.encodeProgress = 100;
+            job.outputSizeBytes = (await stat(job.outputPath!)).size;
+        } else {
+            job.status = "Queued";
+            job.encodeProgress = 0;
+            job.encodeComplete = false;
+            job.outputSizeBytes = null;
+            this.kick();
+        }
+
         this.touch(job);
-        this.kick();
 
         return job;
     }
@@ -216,12 +232,16 @@ class JobManager {
         })();
     }
 
+    /**
+     * Encode phase only. On success the job becomes "Ready" and
+     * waits for an explicit upload action (review gate).
+     */
     private async process(job: Job): Promise<void> {
         job.attempts += 1;
 
         try {
-            // ---- encode phase (skipped on retry when a fully
-            // ---- completed output from a previous attempt exists)
+            // Encode is skipped on retry when a fully completed
+            // output from a previous attempt exists.
             const outputReady =
                 job.encodeComplete &&
                 (await this.outputExists(job));
@@ -230,29 +250,82 @@ class JobManager {
                 logger.info(
                     `Reusing existing output for ${job.inputName} (retry).`
                 );
-            } else {
-                job.status = "Encoding";
-                this.touch(job);
 
-                await encodeFile({
-                    inputPath: job.inputPath,
-                    outputPath: job.outputPath!,
-                    profile: job.profile,
-                    onProgress: (percent) => {
-                        job.encodeProgress = percent;
-                        this.touch(job, true);
-                    }
-                });
+                // Reuse means: go straight to the review gate.
+                job.encodeProgress = 100;
+                job.status = "Ready";
+                const outputStat = await stat(job.outputPath!);
+                job.outputSizeBytes = outputStat.size;
+                this.touch(job);
+                return;
             }
+
+            job.status = "Encoding";
+            this.touch(job);
+
+            await encodeFile({
+                inputPath: job.inputPath,
+                outputPath: job.outputPath!,
+                profile: job.profile,
+                onProgress: (percent) => {
+                    job.encodeProgress = percent;
+                    this.touch(job, true);
+                }
+            });
 
             const outputStat = await stat(job.outputPath!);
             job.outputSizeBytes = outputStat.size;
             job.encodeProgress = 100;
             job.encodeComplete = true;
-
-            // ---- upload phase
-            job.status = "Uploading";
+            job.status = "Ready";
             this.touch(job);
+
+            logger.info(
+                `Encoded: ${job.inputName} -> ${job.outputPath} (waiting for upload)`
+            );
+        } catch (error) {
+            job.status = "Failed";
+            job.error =
+                error instanceof Error
+                    ? error.message
+                    : String(error);
+            this.touch(job);
+
+            logger.error(
+                `Failed: ${job.inputName}: ${job.error}`
+            );
+        }
+    }
+
+    /**
+     * Upload phase (explicit user action). Allowed from "Ready",
+     * or from "Failed" when a completed output exists (upload retry).
+     */
+    public async uploadJob(id: string): Promise<Job> {
+        const job = this.get(id);
+
+        const canUpload =
+            job.status === "Ready" ||
+            (job.status === "Failed" &&
+                job.encodeComplete &&
+                (await this.outputExists(job)));
+
+        if (!canUpload) {
+            throw new AppError(
+                `Job is not ready to upload (status: ${job.status}).`,
+                {
+                    statusCode: 400,
+                    code: "JOB_NOT_READY"
+                }
+            );
+        }
+
+        try {
+            job.status = "Uploading";
+            job.error = null;
+            this.touch(job);
+
+            const outputStat = await stat(job.outputPath!);
 
             const outcome = await uploadToR2({
                 filePath: job.outputPath!,
@@ -288,6 +361,29 @@ class JobManager {
                 `Failed: ${job.inputName}: ${job.error}`
             );
         }
+
+        return job;
+    }
+
+    /**
+     * Remove a job from the registry. Active jobs (currently
+     * encoding/uploading) cannot be removed.
+     */
+    public remove(id: string): void {
+        const job = this.get(id);
+
+        if (job.status === "Encoding" || job.status === "Uploading") {
+            throw new AppError(
+                "Cannot delete a job while it is running.",
+                {
+                    statusCode: 409,
+                    code: "JOB_ACTIVE"
+                }
+            );
+        }
+
+        this.jobs.delete(id);
+        this.persist();
     }
 
     private async outputExists(job: Job): Promise<boolean> {

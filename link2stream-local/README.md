@@ -38,7 +38,12 @@ starts the server, and opens http://127.0.0.1:3100 in your browser.
 Requires ffmpeg with VideoToolbox (`ffmpeg -encoders | grep videotoolbox`).
 
 Drop media files (.mkv .mp4 .m4v .mov .avi .webm) into `input/`,
-select them in the UI, pick a profile, Process + Upload.
+select them in the UI, pick a profile, press Process.
+
+Processing does NOT upload automatically: the job ends at "Ready",
+where you can Open the result in your default player (e.g. IINA)
+and only then press Upload. Jobs can be retried or deleted at any
+time; running jobs cannot be deleted.
 
 ## Download just this folder
 

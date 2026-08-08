@@ -91,21 +91,41 @@ function jobInner(job) {
   const uploadBar = `<div class="bar"><div style="width:${job.uploadProgress}%"></div></div>`;
 
   let detail = "";
+  const actions = [];
 
-  if (job.status === "Encoding") detail = `Encoding ${job.encodeProgress}%`;
-  else if (job.status === "Uploading") detail = `Upload ${job.uploadProgress}%`;
-  else if (job.status === "Complete") detail = `${inSize} → ${outSize}`;
-  else if (job.status === "Failed") detail = `<span class="error-text">${escapeHtml(job.error || "Failed")}</span>`;
-
-  const link =
+  const openBtn = `<button class="small secondary open-btn" data-id="${job.id}">Open</button>`;
+  const uploadBtn = `<button class="small upload-btn" data-id="${job.id}">Upload</button>`;
+  const retryBtn = `<button class="small secondary retry" data-id="${job.id}">Retry</button>`;
+  const deleteBtn = `<button class="small danger delete-btn" data-id="${job.id}" data-name="${escapeHtml(job.inputName).replace(/"/g, "&quot;")}">Delete</button>`;
+  const linkBtn =
     job.familyLink != null
       ? `<button class="small copy" data-link="${escapeHtml(job.familyLink).replace(/"/g, "&quot;")}">Copy Family Link</button>`
       : "";
 
-  const retry =
-    job.status === "Failed"
-      ? `<button class="small secondary retry" data-id="${job.id}">Retry</button>`
-      : "";
+  const hasOutput =
+    job.outputPath != null &&
+    (job.encodeComplete === true || job.status === "Complete");
+
+  if (job.status === "Encoding") {
+    detail = `Encoding ${job.encodeProgress}%`;
+  } else if (job.status === "Uploading") {
+    detail = `Upload ${job.uploadProgress}%`;
+  } else if (job.status === "Ready") {
+    detail = `Ready — ${outSize}. Review, then upload.`;
+    if (hasOutput) actions.push(openBtn);
+    actions.push(uploadBtn, deleteBtn);
+  } else if (job.status === "Complete") {
+    detail = `${inSize} → ${outSize}`;
+    if (linkBtn) actions.push(linkBtn);
+    actions.push(deleteBtn);
+  } else if (job.status === "Failed") {
+    detail = `<span class="error-text">${escapeHtml(job.error || "Failed")}</span>`;
+    if (hasOutput) actions.push(openBtn);
+    actions.push(retryBtn, deleteBtn);
+  } else if (job.status === "Queued") {
+    detail = "Waiting in queue…";
+    actions.push(deleteBtn);
+  }
 
   const bars = job.status === "Encoding" ? encodeBar : job.status === "Uploading" ? uploadBar : "";
 
@@ -114,8 +134,7 @@ function jobInner(job) {
     <span class="name">${name} <span class="muted">(${escapeHtml(job.profile)})</span></span>
     ${bars}
     <span class="muted">${detail}</span>
-    ${retry}
-    ${link}
+    ${actions.join("")}
   </div>`;
 }
 
@@ -173,10 +192,27 @@ document.addEventListener("click", (event) => {
     navigator.clipboard.writeText(el.dataset.link);
     el.textContent = "Copied!";
     setTimeout(() => (el.textContent = "Copy Family Link"), 1500);
-  } else if (el.classList.contains("retry")) {
-    fetch(`/api/jobs/${el.dataset.id}/retry`, { method: "POST" })
-      .then((r) => r.json().then((d) => (!r.ok ? alert(d?.error?.message || "Retry failed") : refreshJobs())))
-      .catch((e) => alert(String(e)));
+    return;
+  }
+
+  const id = el.dataset.id;
+
+  if (el.classList.contains("retry")) {
+    api(`/jobs/${id}/retry`, { method: "POST" })
+      .then(refreshJobs)
+      .catch((e) => alert(e.message));
+  } else if (el.classList.contains("upload-btn")) {
+    api(`/jobs/${id}/upload`, { method: "POST" })
+      .then(refreshJobs)
+      .catch((e) => alert(e.message));
+  } else if (el.classList.contains("open-btn")) {
+    api(`/jobs/${id}/open`, { method: "POST" })
+      .catch((e) => alert(e.message));
+  } else if (el.classList.contains("delete-btn")) {
+    if (!confirm(`Delete job "${el.dataset.name}" from the list? (files on disk stay)`)) return;
+    api(`/jobs/${id}`, { method: "DELETE" })
+      .then(refreshJobs)
+      .catch((e) => alert(e.message));
   }
 });
 

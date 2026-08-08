@@ -46,6 +46,7 @@ button {
 }
 button:disabled { background: #3a4350; cursor: not-allowed; }
 button.secondary { background: #39434e; }
+button.danger { background: #a33a3a; }
 button.small { padding: 4px 8px; font-size: 13px; }
 
 .bar {
@@ -61,6 +62,7 @@ button.small { padding: 4px 8px; font-size: 13px; }
 .status { font-size: 12px; padding: 2px 8px; border-radius: 4px; border: 1px solid #39434e; white-space: nowrap; }
 .status.Queued { color: #9aa7b4; }
 .status.Encoding { color: #d8a545; }
+.status.Ready { color: #b48ad6; }
 .status.Uploading { color: #5ba3e8; }
 .status.Complete { color: #5dae7c; }
 .status.Failed { color: #d06a6a; }

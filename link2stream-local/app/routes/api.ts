@@ -1,5 +1,7 @@
 import { Router } from "express";
 
+import { stat } from "node:fs/promises";
+
 import { AppError } from "../shared/errors.js";
 import { asyncHandler } from "../shared/middleware.js";
 import { runProcess } from "../shared/process.js";
@@ -176,19 +178,87 @@ apiRouter.get("/jobs", (_req, res) => {
     res.json({ jobs: jobManager.list() });
 });
 
+function jobIdFrom(req: { params: Record<string, unknown> }): string {
+    const rawId = req.params.id;
+    const id = Array.isArray(rawId) ? rawId[0] : rawId;
+
+    if (typeof id !== "string" || id.length === 0) {
+        throw new AppError("Missing job id", {
+            statusCode: 400,
+            code: "JOB_ID_MISSING"
+        });
+    }
+
+    return id;
+}
+
 apiRouter.post(
     "/jobs/:id/retry",
     asyncHandler(async (req, res) => {
-        const rawId = req.params.id;
-        const id = Array.isArray(rawId) ? rawId[0] : rawId;
+        res.json({ job: await jobManager.retry(jobIdFrom(req)) });
+    })
+);
 
-        if (!id) {
-            throw new AppError("Missing job id", {
+/** Upload a processed (Ready) job, or retry a failed upload. */
+apiRouter.post(
+    "/jobs/:id/upload",
+    asyncHandler(async (req, res) => {
+        res.json({
+            job: await jobManager.uploadJob(jobIdFrom(req))
+        });
+    })
+);
+
+/** Open the generated output in the default player (macOS). */
+apiRouter.post(
+    "/jobs/:id/open",
+    asyncHandler(async (req, res) => {
+        if (process.platform !== "darwin") {
+            throw new AppError(
+                "Open is only supported on macOS.",
+                {
+                    statusCode: 400,
+                    code: "OPEN_UNSUPPORTED"
+                }
+            );
+        }
+
+        const job = jobManager.get(jobIdFrom(req));
+
+        if (!job.outputPath) {
+            throw new AppError("No output file for this job.", {
                 statusCode: 400,
-                code: "JOB_ID_MISSING"
+                code: "JOB_OUTPUT_MISSING"
             });
         }
 
-        res.json({ job: jobManager.retry(id) });
+        const info = await stat(job.outputPath).catch(() => null);
+
+        if (!info || info.size === 0) {
+            throw new AppError("Output file does not exist.", {
+                statusCode: 404,
+                code: "JOB_OUTPUT_MISSING"
+            });
+        }
+
+        // argv array: no shell involved; opens in the default
+        // handler for the type (e.g. IINA).
+        const { runProcess: run } = await import(
+            "../shared/process.js"
+        );
+
+        await run("open", [job.outputPath]);
+
+        res.json({ success: true });
+    })
+);
+
+/** Remove a job from the registry (not while running). */
+apiRouter.delete(
+    "/jobs/:id",
+    asyncHandler(async (req, res) => {
+        jobManager.remove(jobIdFrom(req));
+
+        res.json({ success: true });
     })
 );
