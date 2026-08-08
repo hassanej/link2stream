@@ -6,7 +6,13 @@ import { runProcess } from "../shared/process.js";
 import { config } from "../config.js";
 import { jobManager } from "../services/jobs.js";
 import { isProfileId, PROFILES } from "../services/profiles.js";
+import { resetR2Client } from "../services/r2.js";
 import { resolveInputFile, scanInput } from "../services/scanner.js";
+import {
+    getR2Status,
+    saveR2Settings,
+    validateR2Settings
+} from "../services/settings.js";
 
 export const apiRouter = Router();
 
@@ -35,6 +41,40 @@ apiRouter.get(
                     encoders.stdout.includes("h264_videotoolbox")
             }
         });
+    })
+);
+
+/** R2 status only — never returns credential values. */
+apiRouter.get("/settings/r2", (_req, res) => {
+    res.json(getR2Status());
+});
+
+/**
+ * Save R2 credentials (browser -> server only; written to .env
+ * with chmod 600; cached client is reset so the next upload uses
+ * the new values immediately).
+ */
+apiRouter.post(
+    "/settings/r2",
+    asyncHandler(async (req, res) => {
+        const body = req.body as {
+            accountId?: unknown;
+            accessKeyId?: unknown;
+            secretAccessKey?: unknown;
+            bucket?: unknown;
+        };
+
+        const settings = validateR2Settings({
+            accountId: String(body?.accountId ?? ""),
+            accessKeyId: String(body?.accessKeyId ?? ""),
+            secretAccessKey: String(body?.secretAccessKey ?? ""),
+            bucket: String(body?.bucket ?? "")
+        });
+
+        await saveR2Settings(settings);
+        resetR2Client();
+
+        res.json(getR2Status());
     })
 );
 

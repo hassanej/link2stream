@@ -65,3 +65,19 @@ button.small { padding: 4px 8px; font-size: 13px; }
 .status.Complete { color: #5dae7c; }
 .status.Failed { color: #d06a6a; }
 .error-text { color: #d06a6a; font-size: 12px; }
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.grid input {
+  background: #10151a;
+  border: 1px solid #39434e;
+  border-radius: 6px;
+  color: inherit;
+  padding: 8px 10px;
+  font: inherit;
+}

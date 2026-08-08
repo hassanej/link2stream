@@ -180,6 +180,55 @@ document.addEventListener("click", (event) => {
   }
 });
 
+/* ---------------- R2 settings ---------------- */
+
+async function refreshR2Status() {
+  try {
+    const status = await api("/settings/r2");
+    const el = $("#r2-status");
+
+    if (status.configured) {
+      el.textContent = `configured (${status.bucket})`;
+      el.className = "status Complete";
+    } else {
+      el.textContent = "not configured";
+      el.className = "status Failed";
+    }
+  } catch {
+    $("#r2-status").textContent = "unknown";
+  }
+}
+
+$("#r2-save").addEventListener("click", async () => {
+  const payload = {
+    accountId: $("#r2-account").value,
+    accessKeyId: $("#r2-access-key").value,
+    secretAccessKey: $("#r2-secret").value,
+    bucket: $("#r2-bucket").value,
+  };
+
+  $("#r2-save-msg").textContent = "";
+
+  try {
+    const status = await api("/settings/r2", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+
+    $("#r2-account").value = "";
+    $("#r2-access-key").value = "";
+    $("#r2-secret").value = "";
+    $("#r2-bucket").value = "";
+
+    $("#r2-save-msg").textContent = `Saved. Bucket: ${status.bucket}`;
+    $("#r2-save-msg").className = "muted";
+    refreshR2Status();
+  } catch (error) {
+    $("#r2-save-msg").textContent = error.message;
+    $("#r2-save-msg").className = "error-text";
+  }
+});
+
 async function boot() {
   try {
     const [cfg, health] = await Promise.all([api("/config"), api("/health")]);
@@ -188,6 +237,7 @@ async function boot() {
     // non-fatal
   }
 
+  refreshR2Status();
   refreshFiles();
   refreshJobs();
   setInterval(refreshJobs, 1500);

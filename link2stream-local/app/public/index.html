@@ -13,6 +13,24 @@
       <p class="muted" id="env-line"></p>
     </header>
 
+    <section class="card" id="r2-settings">
+      <div class="row between">
+        <h2>R2 settings</h2>
+        <span id="r2-status" class="status Queued">checking...</span>
+      </div>
+      <p class="muted">Keys are sent only to the local backend and saved to .env (never shown back here).</p>
+      <div class="grid">
+        <input id="r2-account" type="text" placeholder="R2 Account ID" autocomplete="off" />
+        <input id="r2-access-key" type="password" placeholder="R2 Access Key ID" autocomplete="off" />
+        <input id="r2-secret" type="password" placeholder="R2 Secret Access Key" autocomplete="off" />
+        <input id="r2-bucket" type="text" placeholder="R2 Bucket" autocomplete="off" />
+      </div>
+      <div class="row">
+        <button id="r2-save">Save R2 settings</button>
+        <span id="r2-save-msg" class="muted"></span>
+      </div>
+    </section>
+
     <section class="card">
       <div class="row between">
         <h2>Input files</h2>

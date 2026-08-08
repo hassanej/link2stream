@@ -22,6 +22,12 @@ let bucket: string | null = null;
  * (shared/r2config.ts) — same env vars, same endpoint
  * convention used by the rest of Link2Stream.
  */
+/** Drop the cached client (called after R2 settings change). */
+export function resetR2Client(): void {
+    client = null;
+    bucket = null;
+}
+
 function getClient(): { client: S3Client; bucket: string } {
     if (client && bucket) {
         return { client, bucket };
