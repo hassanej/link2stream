@@ -114,6 +114,17 @@ Download → Rename (series) → Select Original / Downsized 1080p / Downsized 7
 
 Requires `aria2c` and `ffmpeg` on the host.
 
+## Deploy to a brand-new VPS
+
+One script installs Node 22, ffmpeg and aria2, clones the repo,
+builds, and starts the app (Debian/Ubuntu and Fedora/RHEL):
+
+    curl -fsSL https://raw.githubusercontent.com/hassanej/link2stream/main/apps/uploader/scripts/setup-vps.sh | bash
+
+Re-running it updates (`git pull`) and restarts the app.
+Set `SKIP_SYSTEM_DEPS=1` to skip OS package installation.
+Logs live in `storage/logs/uploader.log`.
+
 ## API
 
 | Endpoint | Purpose |
