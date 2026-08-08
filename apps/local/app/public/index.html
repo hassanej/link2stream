@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Link2Stream Local</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Link2Stream Local</h1>
+      <p class="muted" id="env-line"></p>
+    </header>
+
+    <section class="card">
+      <div class="row between">
+        <h2>Input files</h2>
+        <button id="rescan" class="secondary">Rescan</button>
+      </div>
+      <div id="files" class="muted">Scanning...</div>
+    </section>
+
+    <section class="card">
+      <h2>Output</h2>
+      <label class="radio">
+        <input type="radio" name="profile" value="smaller-1080p" />
+        Smaller 1080p <span class="muted">(same resolution, ~3 Mbps)</span>
+      </label>
+      <label class="radio">
+        <input type="radio" name="profile" value="720p" checked />
+        720p <span class="muted">(1280x720, ~2 Mbps)</span>
+      </label>
+      <div class="row">
+        <button id="process" disabled>Process + Upload</button>
+        <span id="selection" class="muted"></span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Jobs</h2>
+      <div id="jobs" class="muted">No jobs yet.</div>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>

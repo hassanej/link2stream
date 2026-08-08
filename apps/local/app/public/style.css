@@ -1,0 +1,67 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #101418;
+  color: #e6e9ec;
+}
+
+main { max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; }
+h1 { font-size: 22px; margin: 0 0 4px; }
+h2 { font-size: 16px; margin: 0; }
+
+.card {
+  background: #1a2027;
+  border: 1px solid #2a323b;
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+.between { justify-content: space-between; }
+.muted { color: #8a95a1; font-size: 13px; }
+.mono { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
+
+.file-row, .job-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  border-top: 1px solid #2a323b;
+  padding: 8px 0;
+}
+.file-row .name, .job-row .name { flex: 1; overflow-wrap: anywhere; }
+
+.radio { display: block; margin-top: 8px; cursor: pointer; }
+
+button {
+  font: inherit;
+  background: #2f6fed;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+button:disabled { background: #3a4350; cursor: not-allowed; }
+button.secondary { background: #39434e; }
+button.small { padding: 4px 8px; font-size: 13px; }
+
+.bar {
+  background: #10151a;
+  border-radius: 6px;
+  height: 8px;
+  overflow: hidden;
+  min-width: 120px;
+  flex: 1;
+}
+.bar > div { height: 100%; background: #2f6fed; width: 0; }
+
+.status { font-size: 12px; padding: 2px 8px; border-radius: 4px; border: 1px solid #39434e; white-space: nowrap; }
+.status.Queued { color: #9aa7b4; }
+.status.Encoding { color: #d8a545; }
+.status.Uploading { color: #5ba3e8; }
+.status.Complete { color: #5dae7c; }
+.status.Failed { color: #d06a6a; }
+.error-text { color: #d06a6a; font-size: 12px; }

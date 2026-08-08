@@ -1,0 +1,26 @@
+{
+  "name": "@link2stream/local",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local Mac utility: compress media to streaming profiles and upload to Cloudflare R2.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "tsx watch app/main.ts",
+    "start": "tsx app/main.ts",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1100.0",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.3.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}
