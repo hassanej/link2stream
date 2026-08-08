@@ -204,7 +204,6 @@ $("#r2-save").addEventListener("click", async () => {
     accountId: $("#r2-account").value,
     accessKeyId: $("#r2-access-key").value,
     secretAccessKey: $("#r2-secret").value,
-    bucket: $("#r2-bucket").value,
   };
 
   $("#r2-save-msg").textContent = "";
@@ -218,7 +217,6 @@ $("#r2-save").addEventListener("click", async () => {
     $("#r2-account").value = "";
     $("#r2-access-key").value = "";
     $("#r2-secret").value = "";
-    $("#r2-bucket").value = "";
 
     $("#r2-save-msg").textContent = `Saved. Bucket: ${status.bucket}`;
     $("#r2-save-msg").className = "muted";

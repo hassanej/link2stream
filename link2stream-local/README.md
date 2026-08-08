@@ -59,7 +59,10 @@ Or sparse-checkout only this folder:
 
 - R2 S3 client/config follows the project's shared conventions
   (app/shared/r2config.ts: R2_ACCOUNT_ID / R2_ACCESS_KEY_ID /
-  R2_SECRET_ACCESS_KEY / R2_BUCKET, `*.r2.cloudflarestorage.com`).
+  R2_SECRET_ACCESS_KEY, `*.r2.cloudflarestorage.com`).
+- Bucket is fixed: `family-share`.
+- Credentials can be pasted in the UI (R2 settings card); they are
+  saved to .env (chmod 600) server-side and never returned.
 - Object keys follow apps/worker's upload convention
   (`<epochMs>-<uuid>.mp4` + originalName/uploadedBy metadata).
 - Family links follow apps/worker's public streaming convention:

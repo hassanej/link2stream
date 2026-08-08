@@ -13,23 +13,24 @@ const LOCAL_ROOT = path.resolve(
 const ENV_PATH = path.join(LOCAL_ROOT, ".env");
 const ENV_EXAMPLE_PATH = path.join(LOCAL_ROOT, ".env.example");
 
+/** Bucket is fixed for this application. */
+export const R2_BUCKET = "family-share";
+
 export const R2_KEYS = [
     "R2_ACCOUNT_ID",
     "R2_ACCESS_KEY_ID",
-    "R2_SECRET_ACCESS_KEY",
-    "R2_BUCKET"
+    "R2_SECRET_ACCESS_KEY"
 ] as const;
 
 export interface R2SettingsInput {
     accountId: string;
     accessKeyId: string;
     secretAccessKey: string;
-    bucket: string;
 }
 
 export interface R2Status {
     configured: boolean;
-    bucket: string | null;
+    bucket: string;
 }
 
 export function validateR2Settings(
@@ -38,18 +39,16 @@ export function validateR2Settings(
     const cleaned: R2SettingsInput = {
         accountId: input.accountId?.trim() ?? "",
         accessKeyId: input.accessKeyId?.trim() ?? "",
-        secretAccessKey: input.secretAccessKey?.trim() ?? "",
-        bucket: input.bucket?.trim() ?? ""
+        secretAccessKey: input.secretAccessKey?.trim() ?? ""
     };
 
     if (
         !cleaned.accountId ||
         !cleaned.accessKeyId ||
-        !cleaned.secretAccessKey ||
-        !cleaned.bucket
+        !cleaned.secretAccessKey
     ) {
         throw new AppError(
-            "All R2 fields are required (account id, access key id, secret access key, bucket).",
+            "All R2 fields are required (account id, access key id, secret access key).",
             {
                 statusCode: 400,
                 code: "R2_SETTINGS_INCOMPLETE"
@@ -70,7 +69,7 @@ export function getR2Status(): R2Status {
 
     return {
         configured,
-        bucket: configured ? (process.env.R2_BUCKET ?? null) : null
+        bucket: R2_BUCKET
     };
 }
 
@@ -85,8 +84,7 @@ export async function saveR2Settings(
     const values: Record<string, string> = {
         R2_ACCOUNT_ID: input.accountId,
         R2_ACCESS_KEY_ID: input.accessKeyId,
-        R2_SECRET_ACCESS_KEY: input.secretAccessKey,
-        R2_BUCKET: input.bucket
+        R2_SECRET_ACCESS_KEY: input.secretAccessKey
     };
 
     // Runtime first (takes effect immediately).

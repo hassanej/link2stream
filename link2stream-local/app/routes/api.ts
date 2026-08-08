@@ -61,14 +61,12 @@ apiRouter.post(
             accountId?: unknown;
             accessKeyId?: unknown;
             secretAccessKey?: unknown;
-            bucket?: unknown;
         };
 
         const settings = validateR2Settings({
             accountId: String(body?.accountId ?? ""),
             accessKeyId: String(body?.accessKeyId ?? ""),
-            secretAccessKey: String(body?.secretAccessKey ?? ""),
-            bucket: String(body?.bucket ?? "")
+            secretAccessKey: String(body?.secretAccessKey ?? "")
         });
 
         await saveR2Settings(settings);

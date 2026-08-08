@@ -27,7 +27,8 @@ export function loadR2Config(): R2Config {
         accountId: requireEnv("R2_ACCOUNT_ID"),
         accessKeyId: requireEnv("R2_ACCESS_KEY_ID"),
         secretAccessKey: requireEnv("R2_SECRET_ACCESS_KEY"),
-        bucket: requireEnv("R2_BUCKET"),
+        // Bucket is fixed for this application.
+        bucket: "family-share",
         publicUrl: process.env.R2_PUBLIC_URL || undefined
     };
 }
