@@ -37,3 +37,7 @@ pnpm-debug.log*
 
 # TypeScript
 *.tsbuildinfo
+
+# Uploader runtime storage (downloads, encodes, previews, registry, logs)
+storage/
+apps/uploader/storage/

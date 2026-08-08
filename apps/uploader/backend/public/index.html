@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Link2Stream Uploader</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <header>
+    <h1>Link2Stream Uploader</h1>
+    <p class="muted">Download &rarr; Rename &rarr; Encode &rarr; Preview &rarr; Choose &rarr; R2 check &rarr; Upload &rarr; Cleanup</p>
+  </header>
+
+  <main>
+    <section class="card" id="download-section">
+      <h2>1. Download</h2>
+      <div class="row">
+        <input id="download-url" type="url" placeholder="https://example.com/file.mp4" />
+        <select id="download-kind">
+          <option value="movie">Movie</option>
+          <option value="series">Series</option>
+        </select>
+        <button id="download-btn">Download</button>
+      </div>
+      <p class="muted" id="download-status"></p>
+    </section>
+
+    <section class="card">
+      <h2>2. Library</h2>
+      <div class="row">
+        <button id="apply-renames" class="secondary">Apply renames (series)</button>
+        <button id="refresh-media" class="secondary">Refresh</button>
+      </div>
+      <div id="media-list"></div>
+    </section>
+
+    <section class="card">
+      <h2>3. R2 Storage</h2>
+      <div class="row">
+        <button id="refresh-r2" class="secondary">Refresh usage</button>
+        <span id="r2-usage-text" class="muted"></span>
+      </div>
+      <div class="bar"><div id="r2-bar-fill"></div></div>
+      <p class="muted" id="r2-projection"></p>
+      <div class="row">
+        <button id="upload-btn" disabled>Upload selected</button>
+      </div>
+      <div id="r2-files"></div>
+    </section>
+
+    <section class="card">
+      <h2>4. Jobs</h2>
+      <div id="jobs-list" class="muted"></div>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
