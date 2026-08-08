@@ -39,8 +39,8 @@ pnpm-debug.log*
 *.tsbuildinfo
 
 # Local app droppoint / generated files
-/apps/local/input/
-/apps/local/output/
+/link2stream-local/input/
+/link2stream-local/output/
 
 # Leftover on-disk uploader runtime data (untracked; app removed from repo)
 /apps/uploader/storage/

@@ -21,7 +21,7 @@ Workflow:
 
 ## Run
 
-    cd apps/local
+    cd link2stream-local
     cp .env.example .env   # set R2_* values
     npm install
     npm run dev            # http://127.0.0.1:3100
@@ -30,6 +30,21 @@ Requires ffmpeg with VideoToolbox (`ffmpeg -encoders | grep videotoolbox`).
 
 Drop media files (.mkv .mp4 .m4v .mov .avi .webm) into `input/`,
 select them in the UI, pick a profile, Process + Upload.
+
+## Download just this folder
+
+GitHub has no single-folder zip, but the whole repo is tiny
+(code only), so a regular clone is fine:
+
+    git clone --depth 1 https://github.com/hassanej/link2stream.git
+    cd link2stream/link2stream-local
+
+Or sparse-checkout only this folder:
+
+    git clone --depth 1 --filter=blob:none --sparse \
+        https://github.com/hassanej/link2stream.git
+    cd link2stream
+    git sparse-checkout set link2stream-local
 
 ## R2 / family-link integration
 
