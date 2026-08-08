@@ -1,4 +1,4 @@
-import { runProcess } from "../../../uploader/backend/process/index.js";
+import { runProcess } from "../shared/process.js";
 
 export const COPYABLE_AUDIO_CODECS = new Set([
     "aac",

@@ -2,12 +2,12 @@ import { randomUUID } from "node:crypto";
 import { stat } from "node:fs/promises";
 import path from "node:path";
 
-import { AppError } from "../../../uploader/backend/errors/index.js";
-import { logger } from "../../../uploader/backend/logging/index.js";
-import { deleteFile } from "../../../uploader/backend/utils/index.js";
+import { AppError } from "../shared/errors.js";
+import { logger } from "../shared/logger.js";
+import { deleteFile } from "../shared/fs.js";
 import {
     ensureDirectory
-} from "../../../uploader/backend/utils/index.js";
+} from "../shared/fs.js";
 import { config } from "../config.js";
 
 import { encodeFile, outputPathFor } from "./encoder.js";

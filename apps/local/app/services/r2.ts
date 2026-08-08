@@ -1,23 +1,26 @@
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+    HeadObjectCommand,
+    PutObjectCommand,
+    S3Client
+} from "@aws-sdk/client-s3";
 import { randomUUID } from "node:crypto";
 import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import path from "node:path";
 import { Transform } from "node:stream";
 
-import { loadR2Config } from "../../../uploader/backend/config/r2.js";
-import { AppError } from "../../../uploader/backend/errors/index.js";
-import { logger } from "../../../uploader/backend/logging/index.js";
-import { r2StorageService } from "../../../uploader/backend/services/r2/index.js";
+import { loadR2Config } from "../shared/r2config.js";
+import { AppError } from "../shared/errors.js";
+import { logger } from "../shared/logger.js";
 import { config } from "../config.js";
 
 let client: S3Client | null = null;
 let bucket: string | null = null;
 
 /**
- * S3 client built with the project's shared R2 configuration
- * (apps/uploader/backend/config/r2.ts) — same env vars,
- * same endpoint convention.
+ * S3 client built with the project's R2 configuration
+ * (shared/r2config.ts) — same env vars, same endpoint
+ * convention used by the rest of Link2Stream.
  */
 function getClient(): { client: S3Client; bucket: string } {
     if (client && bucket) {
@@ -75,6 +78,24 @@ export function buildFamilyLink(objectKey: string): string {
     return `${config.familyBaseUrl}/public/files/${encoded}`;
 }
 
+/** HEAD check used for collision guard and upload confirmation. */
+async function objectExists(objectKey: string): Promise<boolean> {
+    const { client: s3, bucket: bucketName } = getClient();
+
+    try {
+        await s3.send(
+            new HeadObjectCommand({
+                Bucket: bucketName,
+                Key: objectKey
+            })
+        );
+
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 export interface UploadOutcome {
     objectKey: string;
     familyLink: string;
@@ -97,7 +118,7 @@ export async function uploadToR2(input: {
     const objectKey = buildObjectKey(input.filePath);
 
     const keyTaken =
-        await r2StorageService.objectExists(objectKey);
+        await objectExists(objectKey);
 
     if (keyTaken) {
         throw new AppError(
@@ -157,7 +178,7 @@ export async function uploadToR2(input: {
     }
 
     const confirmed =
-        await r2StorageService.objectExists(objectKey);
+        await objectExists(objectKey);
 
     if (!confirmed) {
         throw new AppError(

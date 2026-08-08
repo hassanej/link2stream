@@ -3,8 +3,8 @@ import { fileURLToPath } from "node:url";
 
 import express from "express";
 
-import { errorMiddleware } from "../../uploader/backend/middleware/index.js";
-import { logger } from "../../uploader/backend/logging/index.js";
+import { errorMiddleware } from "./shared/middleware.js";
+import { logger } from "./shared/logger.js";
 import { config } from "./config.js";
 import { apiRouter } from "./routes/api.js";
 import { jobManager } from "./services/jobs.js";

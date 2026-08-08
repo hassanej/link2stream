@@ -33,8 +33,9 @@ select them in the UI, pick a profile, Process + Upload.
 
 ## R2 / family-link integration
 
-- S3 API + endpoint + env-var names reuse apps/uploader's R2 config
-  (R2_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY / R2_BUCKET).
+- R2 S3 client/config follows the project's shared conventions
+  (app/shared/r2config.ts: R2_ACCOUNT_ID / R2_ACCESS_KEY_ID /
+  R2_SECRET_ACCESS_KEY / R2_BUCKET, `*.r2.cloudflarestorage.com`).
 - Object keys follow apps/worker's upload convention
   (`<epochMs>-<uuid>.mp4` + originalName/uploadedBy metadata).
 - Family links follow apps/worker's public streaming convention:

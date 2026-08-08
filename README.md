@@ -7,7 +7,7 @@ Link2Stream is a modular media management platform.
 apps/
 |-- web/         Cloudflare Pages frontend
 |-- worker/      Cloudflare Worker backend
-`-- uploader/    VPS media processing pipeline (planned)
+`-- local/       Local Mac encode + R2 upload utility
 
 packages/        Shared libraries (future)
 docs/            Documentation
@@ -36,16 +36,16 @@ Cloudflare Worker API providing:
 - Upload handling
 - Public links
 
-### apps/uploader
+### apps/local
 
-Planned VPS application responsible for:
+Self-contained local macOS (Apple Silicon) utility:
 
-- Downloading media
-- Metadata extraction
-- Renaming
-- Encoding
-- Preview streaming
-- Uploading to R2
+- Scans a local input/ folder for downloaded media
+- Compresses to two profiles (Smaller 1080p, 720p) with
+  VideoToolbox hardware encoding
+- Uploads results directly to R2
+- Produces family links via the existing worker public
+  streaming route
 
 ## Development
 

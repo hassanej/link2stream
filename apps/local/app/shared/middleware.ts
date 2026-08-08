@@ -1,11 +1,27 @@
 import type {
     NextFunction,
     Request,
+    RequestHandler,
     Response
 } from "express";
 
-import { AppError } from "../errors/index.js";
-import { logger } from "../logging/index.js";
+import { AppError } from "./errors.js";
+import { logger } from "./logger.js";
+
+type AsyncHandler = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => Promise<void>;
+
+export function asyncHandler(
+    handler: AsyncHandler
+): RequestHandler {
+    return (req, res, next) => {
+        Promise.resolve(handler(req, res, next))
+            .catch(next);
+    };
+}
 
 export function errorMiddleware(
     error: unknown,

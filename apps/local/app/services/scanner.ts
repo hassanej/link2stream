@@ -1,7 +1,7 @@
 import { realpath, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 
-import { AppError } from "../../../uploader/backend/errors/index.js";
+import { AppError } from "../shared/errors.js";
 import { config } from "../config.js";
 
 export const SUPPORTED_EXTENSIONS = [

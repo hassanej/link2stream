@@ -1,8 +1,8 @@
 import { Router } from "express";
 
-import { AppError } from "../../../uploader/backend/errors/index.js";
-import { asyncHandler } from "../../../uploader/backend/middleware/index.js";
-import { runProcess } from "../../../uploader/backend/process/index.js";
+import { AppError } from "../shared/errors.js";
+import { asyncHandler } from "../shared/middleware.js";
+import { runProcess } from "../shared/process.js";
 import { config } from "../config.js";
 import { jobManager } from "../services/jobs.js";
 import { isProfileId, PROFILES } from "../services/profiles.js";

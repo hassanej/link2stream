@@ -38,10 +38,9 @@ pnpm-debug.log*
 # TypeScript
 *.tsbuildinfo
 
-# Uploader runtime storage (downloads, encodes, previews, registry, logs)
-# NOTE: path-qualified so apps/uploader/backend/storage/ (source) stays tracked.
-/apps/uploader/storage/
-
 # Local app droppoint / generated files
 /apps/local/input/
 /apps/local/output/
+
+# Leftover on-disk uploader runtime data (untracked; app removed from repo)
+/apps/uploader/storage/
