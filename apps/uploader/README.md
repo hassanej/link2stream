@@ -125,6 +125,15 @@ Re-running it updates (`git pull`) and restarts the app.
 Set `SKIP_SYSTEM_DEPS=1` to skip OS package installation.
 Logs live in `storage/logs/uploader.log`.
 
+### Vultr one-shot deploy
+
+`scripts/vultr-cloud-init.sh` is a first-boot startup script for
+Vultr. Fill in the `R2_*` placeholders at the top, then paste it
+into **Deploy Server → Startup Script** (Ubuntu/Debian image).
+It provisions everything, writes `.env` (chmod 600), opens the
+port via ufw, and starts the app. First-boot log:
+`/var/log/link2stream-vps-setup.log`.
+
 ## API
 
 | Endpoint | Purpose |
